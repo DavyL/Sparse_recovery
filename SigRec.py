@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import math
+from numpy import rec
 
 from numpy.lib.index_tricks import index_exp
 
@@ -46,7 +47,7 @@ def update(dict, signal_to_recover, recovered_signal):
         recovered_signal[i] += dot_prod[max_index]*dict[max_index][i]
         signal_to_recover[i] -= dot_prod[max_index]*dict[max_index][i]
 
-    return (signal_to_recover, recovered_signal)
+    return (signal_to_recover, recovered_signal, max_index)
 
 def normalize_dictionary(dic):
     for vect in dic:
@@ -55,41 +56,66 @@ def normalize_dictionary(dic):
             vect[i] = vect[i]/norm
 
 def recover_signal(dict, orig_sig):
+    recovered_indices = []
     modified_signal = orig_sig.copy()
     sig = np.zeros(len(orig_sig))
     for i in range(2*len(orig_sig)):
-        (modified_signal, sig) = update(dict, modified_signal, sig)
+        (modified_signal, sig, new_index) = update(dict, modified_signal, sig)
+        recovered_indices.append(new_index)
         if(np.dot(sig-orig_sig, sig-orig_sig) < 0.1):
             print("Number of iterations to recover : " + str(i +1))
-            return sig
+            return (sig, recovered_indices)
     print("Recovery didn't succeed after " + str(i+1) + "iterations")
-    return sig
+    return (sig, recovered_indices)
 
 
 
-signal_dimension = 100
-sparsity_dirac = 50
-sparsity_fourier = 50
+signal_dimension = 1000
+#sparsity_dirac = 50
+#sparsity_fourier = 50
 
-dcos = lambda f,t : (np.sqrt(2)/np.sqrt(signal_dimension))* np.cos( (2*np.pi * f * t) / signal_dimension)          ##Discrete cosine of frequency f, evaluated at time t
+sparsity =  int(np.floor(0.5*signal_dimension/np.log(signal_dimension)))
+print("sparsity : " + str(sparsity))
+sparsity_dirac = sparsity
+sparsity_fourier = sparsity 
 
-signal = sg.GenSparseSignal(signal_dimension,sparsity_dirac, sparsity_fourier)
+dcos = lambda f,t : (np.sqrt(2)/np.sqrt(signal_dimension))* np.cos( (np.pi * f * (2*t + 1)) / (2*signal_dimension))          ##Discrete cosine of frequency f, evaluated at time t
+
+(signal, original_indices) = sg.GenSparseSignal(signal_dimension,sparsity_dirac, sparsity_fourier)
 orig_signal = signal.copy()
 
 dirac_basis = GetDiracBasis(signal_dimension)
 fourier_basis = GetFourierBasis(signal_dimension, dcos)
-normalize_dictionary(fourier_basis)
+#normalize_dictionary(fourier_basis)
 
 dictionary = dirac_basis.copy()
 for vect in fourier_basis:
     dictionary.append(vect)
 
 
-recovered_signal = recover_signal(dictionary, signal)
+(recovered_signal, recovered_indices) = recover_signal(dictionary, signal)
+
+original_indices.sort()
+recovered_indices.sort()
+original_indices = list(dict.fromkeys(original_indices))
+recovered_indices = list(dict.fromkeys(recovered_indices))
 plt.plot(orig_signal, 'g-')
 plt.plot(recovered_signal, 'b-')
 plt.show()
 
+#print(original_indices)
+#print(recovered_indices)
 
+excess_indices = []
+for i in recovered_indices:
+    if i not in original_indices:
+        excess_indices.append(i)
+print("indices in excess : " + str(excess_indices))
+
+missing_indices = []
+for i in original_indices:
+    if i not in recovered_indices:
+        missing_indices.append(i)
+print("indices missing : " + str(missing_indices))
 
 

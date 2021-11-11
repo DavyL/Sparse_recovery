@@ -5,20 +5,22 @@ import math
 
 
 def addIndex(cur_indices, index_range):
-    count = 0
-    while(count < index_range):
-        count+=1
+    for count in range(index_range):
         new_index = random.randint(0, index_range-1)
         if new_index not in cur_indices:
             cur_indices.append(new_index) 
             return
-    return print("In addIndex :" + str(count) + "indices have been tried without success.")
+    print("In addIndex :" + str(count) + "indices have been tried without success.")
+    return
 
 def createFourierVect(arr_size, freq, func):
     b = np.zeros(arr_size)
     cos_at_freq = lambda t: func(freq,t)
     for t_step in range(arr_size):
         b[t_step] = cos_at_freq(t_step)
+    normalize = np.sqrt(np.dot(b, b))
+    for t_step in range(arr_size):
+        b[t_step] *= 1/normalize
     return b
 
 def addListsInFirst(l1, l2):    ##Adds (pointwise) elems from l2 to l1
@@ -35,7 +37,7 @@ def createFourierList(sparsity, list_length, func):
         f = createFourierVect(list_length, frequency, func)
         addListsInFirst(output_list, f)
     
-    return output_list
+    return (output_list, indices_fourier)
     
 def createDiracList(sparsity, list_length):
     indices_dirac = []
@@ -46,29 +48,26 @@ def createDiracList(sparsity, list_length):
     for i in indices_dirac:
         output_list[i] += 1
 
-    return output_list
+    return (output_list, indices_dirac)
 
-def l2_norm(l):
-    s = 0
-    for elem in l:
-        s+= elem*elem
-    print(np.sqrt(s))
 
 def GenSparseSignal(dimension, dirac_spars, fourier_spars):
     d = dimension
-    dcos = lambda f,t : (2/np.sqrt(2*d))*np.cos(2*np.pi * f * t / d)          ##Discrete cosine of frequency f, evaluated at time t
+    dcos = lambda f,t : (np.sqrt(2)/np.sqrt(2*d))*np.cos(np.pi * f * (2*t+1) / (2*d))          ##Discrete cosine of frequency f, evaluated at time t
 
 
     #spars = int(np.sqrt(d) / 2) ##Sparsity constraint for the number of nonzero indices (here evenly split between both bases)
     #spars = int(0.2*d/np.log(d))
     #spars = 1
-    fourier = createFourierList(fourier_spars, d, dcos)
-    dirac = createDiracList(dirac_spars, d)
+    (fourier, indices_fourier) = createFourierList(fourier_spars, d, dcos)
+    (dirac, indices_dirac) = createDiracList(dirac_spars, d)
+    for i in range(len(indices_fourier)):
+        indices_dirac.append(d + indices_fourier[i])
     a = np.zeros(d)
     addListsInFirst(a, dirac)
     addListsInFirst(a, fourier)
 
-    return a
+    return (a, indices_dirac)
     #PlotSignals(a, dirac, fourier)
 
 
