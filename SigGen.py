@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-import math
 
 
 def addIndex(cur_indices, index_range):
@@ -19,8 +18,8 @@ def createFourierVect(arr_size, freq, func):
     for t_step in range(arr_size):
         b[t_step] = cos_at_freq(t_step)
     normalize = np.sqrt(np.dot(b, b))
-    for t_step in range(arr_size):
-        b[t_step] *= 1/normalize
+    b*=1/normalize
+    
     return b
 
 def addListsInFirst(l1, l2):    ##Adds (pointwise) elems from l2 to l1
@@ -34,10 +33,11 @@ def createFourierList(sparsity, list_length, func):
         addIndex(indices_fourier, list_length)
     
     for frequency in indices_fourier:
-        f = createFourierVect(list_length, frequency, func)
-        addListsInFirst(output_list, f)
+        output_list += createFourierVect(list_length, frequency, func)
     
-    return (output_list, indices_fourier)
+    indices_tuple = [(i + list_length,1.0) for i in indices_fourier]
+
+    return (output_list, indices_tuple)
     
 def createDiracList(sparsity, list_length):
     indices_dirac = []
@@ -47,9 +47,19 @@ def createDiracList(sparsity, list_length):
 
     for i in indices_dirac:
         output_list[i] += 1
+    
+    indices_tuple = [(i, 1.0) for i in indices_dirac]
 
-    return (output_list, indices_dirac)
+    return (output_list, indices_tuple)
 
+##GenSignal() : generates a signal with atoms in dict and support and indices are given by index_tuple
+# index_tuple := (atom_index, scalar)
+def GenSignal(dimension, dictionary, index_tuple):
+    ret_signal = np.zeros(dimension)
+    for i in index_tuple:
+        ret_signal += i[1] * dictionary[i[0]]
+
+    return ret_signal
 
 def GenSparseSignal(dimension, dirac_spars, fourier_spars):
     d = dimension
@@ -61,13 +71,16 @@ def GenSparseSignal(dimension, dirac_spars, fourier_spars):
     #spars = 1
     (fourier, indices_fourier) = createFourierList(fourier_spars, d, dcos)
     (dirac, indices_dirac) = createDiracList(dirac_spars, d)
-    for i in range(len(indices_fourier)):
-        indices_dirac.append(d + indices_fourier[i])
-    a = np.zeros(d)
-    addListsInFirst(a, dirac)
-    addListsInFirst(a, fourier)
+    
+     #Offset indices of the fourier basis so that it gets assigned in position in the Dirac-Fourier dictionary (D,F)
 
-    return (a, indices_dirac)
+    
+    indices = indices_dirac + indices_fourier #Concatenation of lists (of tuples)
+    ret_signal = np.zeros(d)
+    ret_signal += dirac
+    ret_signal += fourier
+
+    return (ret_signal, indices, indices_dirac, indices_fourier)
     #PlotSignals(a, dirac, fourier)
 
 
