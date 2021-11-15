@@ -15,6 +15,7 @@ def addIndex(cur_indices, index_range):
 def createFourierVect(arr_size, freq, func):
     b = np.zeros(arr_size)
     cos_at_freq = lambda t: func(freq,t)
+
     for t_step in range(arr_size):
         b[t_step] = cos_at_freq(t_step)
     normalize = np.sqrt(np.dot(b, b))
@@ -22,9 +23,6 @@ def createFourierVect(arr_size, freq, func):
     
     return b
 
-def addListsInFirst(l1, l2):    ##Adds (pointwise) elems from l2 to l1
-    for i in range(len(l1)):
-        l1[i] += l2[i]
 
 def createFourierList(sparsity, list_length, func):
     indices_fourier = []
@@ -32,10 +30,11 @@ def createFourierList(sparsity, list_length, func):
     for i in range(sparsity):
         addIndex(indices_fourier, list_length)
     
+    indices_tuple = []
     for frequency in indices_fourier:
-        output_list += createFourierVect(list_length, frequency, func)
-    
-    indices_tuple = [(i + list_length,1.0) for i in indices_fourier]
+        scal = np.random.normal(0,1,1)
+        output_list += scal*createFourierVect(list_length, frequency, func)
+        indices_tuple.append((frequency+list_length, scal))
 
     return (output_list, indices_tuple)
     
@@ -45,11 +44,12 @@ def createDiracList(sparsity, list_length):
     for i in range(sparsity):
         addIndex(indices_dirac, list_length)
 
+    indices_tuple = []
     for i in indices_dirac:
-        output_list[i] += 1
+        scal = np.random.normal(0,1,1)
+        output_list[i] += scal
+        indices_tuple.append((i, scal))
     
-    indices_tuple = [(i, 1.0) for i in indices_dirac]
-
     return (output_list, indices_tuple)
 
 ##GenSignal() : generates a signal with atoms in dict and support and indices are given by index_tuple
