@@ -39,10 +39,7 @@ def update(dict, signal_to_recover, recovered_signal):
     dot_prod = GetDotProducts(signal_to_recover, dict)
 
     max_index = GetMaxIndex(dot_prod)
-    #print("max index is " + str(max_index) + "which evaluates at " + str(dot_prod[max_index]))    
-    #for i in range(len(signal_to_recover)):
-    #    recovered_signal[i] += dot_prod[max_index]*dict[max_index][i]
-    #    signal_to_recover[i] -= dot_prod[max_index]*dict[max_index][i]
+
     recovered_signal += (dot_prod[max_index]*dict[max_index])
     signal_to_recover -= (dot_prod[max_index]*dict[max_index])
     
@@ -63,10 +60,10 @@ def recover_signal(dict, orig_sig):
     modified_signal = orig_sig.copy()
     sig = np.zeros(len(orig_sig))
     
-    for i in range(2*len(orig_sig)):    
+    for i in range(2*len(orig_sig)):        ##Change this constant to try longer   
         (modified_signal, sig, new_index) = update(dict, modified_signal, sig)
         recovered_indices.append(new_index)
-        if(np.dot(sig-orig_sig, sig-orig_sig) < 0.0001):
+        if(np.dot(sig-orig_sig, sig-orig_sig) < 0.001):            ##Change this value to increase or decrease reconstruction precision
             print("Number of iterations to recover : " + str(i +1))
             return (sig, recovered_indices)
 

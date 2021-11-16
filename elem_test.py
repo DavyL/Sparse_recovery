@@ -1,4 +1,3 @@
-from signal import signal
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -25,9 +24,9 @@ def elementary_test_1():
     (recovered_signal, cleaned_indices, dictionary, orig_dirac_indices, orig_fourier_indices) = sr.test_recovery_plot(signal_dimension, (sparsity_dirac, sparsity_fourier), dictionary)
 
 def elementary_test_2():
-    signal_dimension = 200
+    signal_dimension = 400
 
-    binary=1##Set to 1 for 0-1 valued indices, other indices values are distributed according to standard gaussian
+    binary=0##Set to 1 for 0-1 valued indices, other indices values are distributed according to standard gaussian
 
     sparsity =  int(np.floor(0.5*signal_dimension/np.log(signal_dimension)))
     print("sparsity : " + str(sparsity))
@@ -60,4 +59,4 @@ def elementary_test_2():
     plt.plot([x[0] for x in indices], [x[1] for x in indices], 'g+')
     plt.show()
 
-elementary_test_2()
+elementary_test_1()

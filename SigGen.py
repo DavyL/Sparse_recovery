@@ -72,8 +72,6 @@ def GenSparseSignal(dimension, dirac_spars, fourier_spars):
     (fourier, indices_fourier) = createFourierList(fourier_spars, d, dcos)
     (dirac, indices_dirac) = createDiracList(dirac_spars, d)
     
-     #Offset indices of the fourier basis so that it gets assigned in position in the Dirac-Fourier dictionary (D,F)
-
     
     indices = indices_dirac + indices_fourier #Concatenation of lists (of tuples)
     ret_signal = np.zeros(d)
@@ -81,21 +79,6 @@ def GenSparseSignal(dimension, dirac_spars, fourier_spars):
     ret_signal += fourier
 
     return (ret_signal, indices, indices_dirac, indices_fourier)
-    #PlotSignals(a, dirac, fourier)
-
-
-def PlotSignals(s1, s2, s3):
-    plt.plot(s1)
-    plt.ylabel('Dirac + Fourier')
-    plt.show()
-
-    plt.plot(s2)
-    plt.ylabel('Dirac')
-    plt.show()
-
-    plt.plot(s3)
-    plt.ylabel('Fourier')
-    plt.show()
 
     
 
